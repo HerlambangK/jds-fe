@@ -240,6 +240,7 @@
             label="Saya menyatakan bahwa data yang diisikan adalah benar 
             dan siap mempertanggungjawabkan apabila ditemukan ketidaksesuaian dalam data tersebut."
           ></v-checkbox>
+          <!-- https://i.pravatar.cc/300 -->
 
           <v-btn
             type="submit"
@@ -274,13 +275,33 @@
                 <v-list-item-subtitle>
                   NIK: {{ memberItem.nik }}</v-list-item-subtitle
                 >
+                <v-list-item-subtitle>
+                  Alasan: {{ memberItem.other }}</v-list-item-subtitle
+                >
+                <v-list-item-subtitle>
+                  Pendapatan:
+                  {{
+                    memberItem.salaryAfterPandemic < 100000
+                      ? "Kurang Dari 1 jt"
+                      : "Lebih Dari 1 jt"
+                  }}</v-list-item-subtitle
+                >
+                <v-list-item-subtitle>
+                  Kelayakan:
+                  <v-chip class="ma-2" color="green" text-color="white">
+                    <v-avatar left>
+                      <v-icon>mdi-checkbox-marked-circle</v-icon>
+                    </v-avatar>
+                    {{ memberItem.isLayak }}
+                  </v-chip>
+                </v-list-item-subtitle>
               </v-list-item-content>
 
-              <v-list-item-avatar
-                tile
-                size="80"
-                color="grey"
-              ></v-list-item-avatar>
+              <v-list-item-avatar tile size="80" color="grey">
+                <img
+                  alt="Avatar"
+                  src="https://avatars0.githubusercontent.com/u/9064066?v=4&s=460"
+              /></v-list-item-avatar>
             </v-list-item>
           </div>
         </v-card-text>
@@ -357,6 +378,7 @@ export default {
       member: [],
       dialog: false,
       loading: false,
+      isLayak: "",
     };
   },
 
@@ -384,6 +406,13 @@ export default {
   },
 
   methods: {
+    calculateIsLayak() {
+      if (this.salaryBeforePandemic <= 100000) {
+        return "Layak Dibantu";
+      } else {
+        return "Tidak layak";
+      }
+    },
     handleNikFile(file) {
       if (file !== null) {
         if (
@@ -538,6 +567,7 @@ export default {
           rt: parseInt(this.rt),
           rw: parseInt(this.rw),
           other: this.reason || this.other,
+          isLayak: this.calculateIsLayak(),
         };
         this.member.push(memberInput);
         this.dialog = true;
@@ -554,7 +584,15 @@ export default {
       this.loading = true;
       setTimeout(() => {
         if (Math.random() < 0.8) {
-          this.formIsValidated();
+          if (this.salaryAfterPandemic <= 100000) {
+            this.formIsValidated();
+            this.loading = false;
+          } else {
+            alert(
+              "Maaf, Anda tidak layak mendapatkan bantuan karena gaji sesudah pandemi lebih dari 1 Juta."
+            );
+            this.loading = false;
+          }
           this.$refs.form.reset();
           (this.name = ""),
             (this.nik = null),
@@ -586,7 +624,9 @@ export default {
             (this.rt = null),
             (this.rw = null),
             (this.salaryBeforePandemic = null),
-            (this.salaryAfterPandemic = null);
+            (this.salaryAfterPandemic = null),
+            (this.isLayak = "");
+          this.loading = false;
         } else {
           alert("Coba kembali");
           this.loading = false;
